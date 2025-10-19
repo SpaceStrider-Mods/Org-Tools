@@ -1,0 +1,38 @@
+name: Mirror to Public Repo
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create sanitized copy
+        run: |
+          mkdir public_export
+          rsync -av --exclude='*.fbx' \
+                    --exclude='*.blend' \
+                    --exclude='*.tga' \
+                    --exclude='*.png' \
+                    --exclude='*.psd' \
+                    --exclude='.git/*' \
+                    ./ public_export/
+
+      - name: Push to public repo
+        env:
+          PAT: ${{ secrets.ORG_SYNC_PAT }}
+        run: |
+          cd public_export
+          git init
+          git config user.name "Mirror Bot"
+          git config user.email "mirror@${{ github.repository_owner }}.com"
+          git remote add origin https://x-access-token:${PAT}@github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}_public.git
+          git add .
+          git commit -m "Sync from ${{ github.repository.name }} tag ${{ github.ref_name }}"
+          git push --force origin main
