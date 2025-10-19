@@ -1,0 +1,34 @@
+name: Sync Public → Private (Merged PRs)
+
+on:
+  workflow_call:
+    secrets:
+      ORG_SYNC_PAT:
+        required: true
+
+jobs:
+  sync_back:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Checkout merged PR
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Push to private repo
+        env:
+          PAT: ${{ secrets.ORG_SYNC_PAT }}
+        run: |
+          PRIVATE_REPO=Abrams
+          BRANCH_NAME="community_merge_${{ github.event.pull_request.number }}"
+
+          echo "Pushing merged PR #${{ github.event.pull_request.number }} to ${PRIVATE_REPO}:${BRANCH_NAME}"
+
+          git config user.name "Mirror Bot"
+          git config user.email "mirror@space-strider-mods.com"
+
+          git remote add private https://x-access-token:${PAT}@github.com/SpaceStrider-Mods/${PRIVATE_REPO}.git
+          git fetch private
+          git push private HEAD:refs/heads/${BRANCH_NAME}
