@@ -23,10 +23,9 @@ jobs:
             --exclude='*.blend' \
             --exclude='*.tga' \
             --exclude='*.png' \
-            --exclude='*.psd' \
-            --exclude='*.dds' \
-            --exclude='.git*' \
-            --exclude='Art/**' \
+            --exclude='*.spp' \
+            --exclude='*.tiff' \
+            --exclude='.git/*' \
             ./ public_export/
 
       - name: Push to public repo
