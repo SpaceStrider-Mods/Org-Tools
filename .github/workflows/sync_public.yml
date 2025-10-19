@@ -34,6 +34,7 @@ jobs:
             --exclude='*.spp' \
             --exclude='*.tiff' \
             --exclude='.git/*' \
+            --exclude='.github/workflows/*' \
             ./ /tmp/export/ || [ $? -eq 24 ]
 
           # Only continue if rsync succeeded or partially succeeded (exit 24)
