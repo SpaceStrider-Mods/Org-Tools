@@ -11,6 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:
+      - name: Derive private repo name
+        id: names
+        run: |
+          PUBLIC_REPO="${{ github.event.repository.name }}"
+          PRIVATE_REPO="${PUBLIC_REPO%_Public}"
+          echo "PRIVATE_REPO=${PRIVATE_REPO}" >> $GITHUB_ENV
+          echo "Syncing merged PR to ${PRIVATE_REPO}"
+
       - name: Checkout merged PR
         uses: actions/checkout@v4
         with:
@@ -21,14 +29,11 @@ jobs:
         env:
           PAT: ${{ secrets.ORG_SYNC_PAT }}
         run: |
-          PRIVATE_REPO=Abrams
           BRANCH_NAME="community_merge_${{ github.event.pull_request.number }}"
-
-          echo "Pushing merged PR #${{ github.event.pull_request.number }} to ${PRIVATE_REPO}:${BRANCH_NAME}"
 
           git config user.name "Mirror Bot"
           git config user.email "mirror@space-strider-mods.com"
 
-          git remote add private https://x-access-token:${PAT}@github.com/SpaceStrider-Mods/${PRIVATE_REPO}.git
+          git remote add private https://x-access-token:${PAT}@github.com/${{ github.repository_owner }}/${PRIVATE_REPO}.git
           git fetch private
           git push private HEAD:refs/heads/${BRANCH_NAME}
