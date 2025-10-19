@@ -25,7 +25,7 @@ jobs:
 
       - name: Create sanitized copy
         run: |
-          mkdir public_export
+          mkdir /tmp/export
           rsync -av \
             --exclude='*.fbx' \
             --exclude='*.blend' \
@@ -34,7 +34,15 @@ jobs:
             --exclude='*.spp' \
             --exclude='*.tiff' \
             --exclude='.git/*' \
-            ./ public_export/ || [ $? -eq 24 ]
+            ./ /tmp/export/ || [ $? -eq 24 ]
+        
+          # Only continue if rsync succeeded or partially succeeded (exit 24)
+          if [ $? -eq 0 ] || [ $? -eq 24 ]; then
+            rm -rf ./* .[^.]* || true
+            mv /tmp/export/* .
+          else
+            echo "❌ Rsync failed with code $?"
+            exit 1
 
       - name: Push to public repo
         env:
