@@ -35,11 +35,10 @@ jobs:
             --exclude='*.tiff' \
             --exclude='.git/*' \
             ./ /tmp/export/ || [ $? -eq 24 ]
-        
+
           # Only continue if rsync succeeded or partially succeeded (exit 24)
           if [ $? -eq 0 ] || [ $? -eq 24 ]; then
-            rm -rf ./* .[^.]* || true
-            mv /tmp/export/* .
+            echo "✅ Rsync completed successfully (exit code $?)."
           else
             echo "❌ Rsync failed with code $?"
             exit 1
@@ -49,7 +48,7 @@ jobs:
         env:
           PAT: ${{ secrets.ORG_SYNC_PAT }}
         run: |
-          cd public_export
+          cd /tmp/export
           git init
           git config user.name "Mirror Bot"
           git config user.email "mirror@space-strider-mods.com"
